@@ -1,40 +1,38 @@
 import mysql.connector
-from mysql.connector import Error
+from mysql.connector import errorcode
 
 def create_database():
-    # Connection details
-    host = "localhost"
-    user = "davidoluyele"
-    password = "@tycoonTHEdeveloper0607"
-    database_name = "alx_book_store"
+    # Connection parameters
+    host = 'localhost'
+    user = 'davidoluyele'
+    password = '@tycoonTHEdeveloper0607'
 
     try:
-        # Establish a connection to the MySQL server
+        # Establish a connection to MySQL server
         connection = mysql.connector.connect(
             host=host,
             user=user,
             password=password
         )
+        cursor = connection.cursor()
 
-        if connection.is_connected():
-            print("Connected to MySQL Server")
+        # Create the database
+        cursor.execute("CREATE DATABASE IF NOT EXISTS alx_book_store")
+        print("Database 'alx_book_store' created successfully!")
 
-            # Create a cursor to execute SQL statements
-            cursor = connection.cursor()
-
-            # Create the database if it doesn't already exist
-            cursor.execute(f"CREATE DATABASE IF NOT EXISTS {database_name}")
-            print(f"Database '{database_name}' created successfully!")
-
-    except Error as e:
-        print(f"Error: {e}")
-
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            print("Error: Access denied for user '{}'. Please check your username and password.".format(user))
+        elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            print("Error: Database does not exist.")
+        else:
+            print("Error: {}".format(err))
     finally:
-        # Close the cursor and connection
-        if connection.is_connected():
+        # Clean up
+        if 'cursor' in locals():
             cursor.close()
+        if 'connection' in locals():
             connection.close()
-            print("MySQL connection is closed.")
 
 if __name__ == "__main__":
     create_database()
